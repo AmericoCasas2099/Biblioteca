@@ -4,11 +4,12 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, BackgroundTasks 
 from pydantic import BaseModel, Field
 
 LIBROS_URL = "http://localhost:8001/libros"
 USUARIOS_URL = "http://localhost:8002/usuarios"
+NOTIFICACIONES_URL = "http://localhost:8004/api/v1/notificaciones/enviar"
 DB_PATH = Path(__file__).with_name("prestamos.db")
 
 
@@ -64,20 +65,30 @@ async def verificar_recurso(client: httpx.AsyncClient, url: str, nombre: str):
             status_code=503,
             detail=f"El servicio de {nombre} respondió con error"
         )
+    return respuesta.json() #recuperar el email del usuario para enviar la notificación
 
 
 @app.post("/prestamos", status_code=status.HTTP_201_CREATED)
-async def crear_prestamo(datos: PrestamoCreate):
+async def crear_prestamo(datos: PrestamoCreate, background_tasks: BackgroundTasks):
     # Estas rutas requieren GET /usuarios/{id} y GET /libros/{id}
     # en sus respectivos servicios.
     async with httpx.AsyncClient(timeout=5.0) as client:
-        await verificar_recurso(
+
+        #ahora se guarda la respuesta del servicio de usuarios para obtener el email del usuario y enviarlo a la función de enviar notificación
+        usuario = await verificar_recurso(
             client, f"{USUARIOS_URL}/{datos.usuario_id}", "usuario"
         )
+       
         await verificar_recurso(
             client, f"{LIBROS_URL}/{datos.libro_id}", "libro"
         )
 
+        destinatario = usuario.get("email")
+        if not destinatario:
+            raise HTTPException(
+                status_code=500,
+                detail="El servicio de usuarios no proporcionó un correo electrónico"
+            )
     try:
         with get_db() as conn:
             cursor = conn.execute(
@@ -88,11 +99,17 @@ async def crear_prestamo(datos: PrestamoCreate):
                 (datos.usuario_id, datos.libro_id)
             )
             prestamo_id = cursor.lastrowid
+            
     except sqlite3.IntegrityError:
         raise HTTPException(
             status_code=409,
             detail="Este libro ya tiene un préstamo activo"
         )
+    background_tasks.add_task(
+        enviar_notificacion_prestamo,
+        destinatario=destinatario,
+        libro_id=datos.libro_id
+    )
 
     return {
         "prestamo_id": prestamo_id,
@@ -129,3 +146,38 @@ def devolver_libro(prestamo_id: int):
         "libro_id": prestamo["libro_id"],
         "activo": False
     }
+
+
+
+
+async def enviar_notificacion_prestamo(
+    destinatario: str,
+    libro_id: int
+):
+    datos = {
+        "destinatario": destinatario,
+        "asunto": "Préstamo registrado",
+        "mensaje": (
+            f"Tu préstamo del libro con ID {libro_id} "
+            "se registró correctamente."
+        )
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            respuesta = await client.post(
+                NOTIFICACIONES_URL,
+                json=datos  
+            )
+
+            if respuesta.status_code not in (200, 201):
+                print(
+                    "El servicio de notificaciones respondió, "
+                    f" con código {respuesta.status_code}"
+                )
+
+    except httpx.HTTPError as e:
+        print(
+            f"No fue posible enviar la notificación: {e}"
+        )
+
