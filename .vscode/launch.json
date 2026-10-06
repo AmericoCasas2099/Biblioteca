@@ -1,0 +1,79 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Libros",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": ["libros_service:app", "--port", "8001"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "justMyCode": true
+        },
+        {
+            "name": "Usuarios",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": ["usuarios_service:app", "--port", "8002"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "justMyCode": true
+        },
+        {
+            "name": "Prestamos",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": ["prestamos_service:app", "--port", "8003"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "justMyCode": true
+        },
+        {
+            "name": "Notificaciones",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": ["notificaciones_service:app", "--port", "8004"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "justMyCode": true
+        },
+        {
+            "name": "Multas",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": ["multas_service:app", "--port", "8005"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "justMyCode": true
+        },
+        {
+            "name": "Resenas",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": ["resenas_service:app", "--port", "8006"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "justMyCode": true
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Biblioteca completa",
+            "configurations": [
+                "Libros",
+                "Usuarios",
+                "Prestamos",
+                "Notificaciones",
+                "Multas",
+                "Resenas"
+            ],
+            "stopAll": false
+        }
+    ]
+}
