@@ -12,15 +12,15 @@ from pydantic import BaseModel, Field
 
 
 LIBROS_URL = os.getenv(
-    "LIBROS_URL", "http://localhost:8001/libros"
+    "LIBROS_URL", "http://localhost:8001/api/v1/libros"
 ).rstrip("/")
 
 USUARIOS_URL = os.getenv(
-    "USUARIOS_URL", "http://localhost:8002/usuarios"
+    "USUARIOS_URL", "http://localhost:8002/api/v1/usuarios"
 ).rstrip("/")
 
 SANCIONES_URL = os.getenv(
-    "SANCIONES_URL", "http://localhost:8005/sanciones"
+    "SANCIONES_URL", "http://localhost:8005/api/v1/sanciones"
 ).rstrip("/")
 
 NOTIFICACIONES_URL = os.getenv(
@@ -247,8 +247,17 @@ async def enviar_notificacion_prestamo(
         )
 
 
+@app.get(
+    "/",
+    tags=["General"],
+    summary="Verificar servicio"
+)
+def verificar_servicio():
+    return {"message": "Servicio en funcionamiento"}
+
+
 @app.post(
-    "/prestamos",
+    "/api/v1/prestamos",
     status_code=status.HTTP_201_CREATED,
     summary="Registrar un préstamo",
     description=(
@@ -406,7 +415,7 @@ async def crear_prestamo(
 
 
 @app.patch(
-    "/prestamos/{prestamo_id}/devolver",
+    "/api/v1/prestamos/{prestamo_id}/devolver",
     summary="Registrar una devolución",
     description=(
         "Libera el libro en el servicio de libros y marca el préstamo "

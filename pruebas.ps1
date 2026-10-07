@@ -1,13 +1,14 @@
 $ErrorActionPreference = "Stop"
 
-$libros = "http://localhost:8001/libros"
-$usuarios = "http://localhost:8002/usuarios"
-$prestamos = "http://localhost:8003/prestamos"
-$multas = "http://localhost:8005/multas"
-$sanciones = "http://localhost:8005/sanciones"
-$resenas = "http://localhost:8006/resenas"
+$libros = "http://localhost:8001/api/v1/libros"
+$usuarios = "http://localhost:8002/api/v1/usuarios"
+$prestamos = "http://localhost:8003/api/v1/prestamos"
+$notificaciones = "http://localhost:8004/api/v1/notificaciones/enviar"
+$multas = "http://localhost:8005/api/v1/multas"
+$sanciones = "http://localhost:8005/api/v1/sanciones"
+$resenas = "http://localhost:8006/api/v1/resenas"
 
-$notificaciones = "http://localhost:8004/notificaciones/enviar"
+$notificaciones = "http://localhost:8004/api/v1/notificaciones/enviar"
 
 function Peticion {
     param(
@@ -172,7 +173,7 @@ try {
         destinatario = $correo
         asunto = "Prueba de biblioteca"
         mensaje = "Notificacion de prueba"
-    } 200
+    } 201
 
     Write-Host "`n14. Devolver el libro"
     $devolucion = Peticion PATCH "$prestamos/$prestamoId/devolver"

@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 USUARIOS_URL = os.getenv(
     "USUARIOS_URL",
-    "http://localhost:8002/usuarios"
+    "http://localhost:8002/api/v1/usuarios"
 ).rstrip("/")
 
 DB_PATH = Path(__file__).with_name("multas.db")
@@ -126,8 +126,17 @@ def convertir_multa(multa):
     }
 
 
+@app.get(
+    "/",
+    tags=["General"],
+    summary="Verificar servicio"
+)
+def verificar_servicio():
+    return {"message": "Servicio en funcionamiento"}
+
+
 @app.post(
-    "/multas",
+    "/api/v1/multas",
     status_code=status.HTTP_201_CREATED,
     summary="Crear una multa",
     description=(
@@ -173,7 +182,7 @@ async def crear_multa(datos: MultaCreate):
 
 
 @app.get(
-    "/multas/{multa_id}",
+    "/api/v1/multas/{multa_id}",
     summary="Consultar una multa",
     description="Obtiene los datos de una multa y su estado de pago.",
     tags=["Multas"]
@@ -195,7 +204,7 @@ def obtener_multa(multa_id: int):
 
 
 @app.patch(
-    "/multas/{multa_id}/pagar",
+    "/api/v1/multas/{multa_id}/pagar",
     summary="Pagar una multa",
     description=(
         "Cambia el estado de una multa pendiente a pagada = True. "
@@ -235,7 +244,7 @@ def pagar_multa(multa_id: int):
 
 
 @app.get(
-    "/sanciones/usuario/{usuario_id}/estatus",
+    "/api/v1/sanciones/usuario/{usuario_id}/estatus",
     summary="Consultar sanciones de un usuario",
     description=(
         "Devuelve el monto total adeudado y la bandera bloqueado. "

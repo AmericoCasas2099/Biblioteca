@@ -191,8 +191,17 @@ def verificar_email_unico(conn, email: str, excluir_id=None):
         )
 
 
+@app.get(
+    "/",
+    tags=["General"],
+    summary="Verificar servicio"
+)
+def verificar_servicio():
+    return {"message": "Servicio en funcionamiento"}
+
+
 @app.post(
-    "/usuarios",
+    "/api/v1/usuarios",
     status_code=status.HTTP_201_CREATED,
     summary="Registrar un usuario",
     description="Crea un usuario con nombre y correo válido y único.",
@@ -217,7 +226,7 @@ def crear_usuario(usuario: UsuarioCreate):
 
 
 @app.get(
-    "/usuarios",
+    "/api/v1/usuarios",
     summary="Listar usuarios",
     description=(
         "Devuelve todos los usuarios ordenados por nombre. "
@@ -237,7 +246,7 @@ def obtener_usuarios():
 
 
 @app.get(
-    "/usuarios/{usuario_id}",
+    "/api/v1/usuarios/{usuario_id}",
     summary="Consultar un usuario",
     description="Obtiene el ID, nombre y correo de un usuario.",
     tags=["Usuarios"],
@@ -251,7 +260,7 @@ def obtener_usuario(usuario_id: int):
 
 
 @app.patch(
-    "/usuarios/{usuario_id}",
+    "/api/v1/usuarios/{usuario_id}",
     summary="Editar un usuario",
     description=(
         "Modifica nombre, correo o ambos. Conserva los campos "
@@ -294,7 +303,7 @@ def editar_usuario(usuario_id: int, payload: UsuarioUpdate):
 
 
 @app.delete(
-    "/usuarios/{usuario_id}",
+    "/api/v1/usuarios/{usuario_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Eliminar un usuario",
     description="Elimina definitivamente el perfil y devuelve una respuesta vacía.",

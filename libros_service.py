@@ -140,8 +140,17 @@ def buscar_libro(conn, libro_id: int):
     return row
 
 
+@app.get(
+    "/",
+    tags=["General"],
+    summary="Verificar servicio"
+)
+def verificar_servicio():
+    return {"message": "Servicio en funcionamiento"}
+
+
 @app.post(
-    "/libros",
+    "/api/v1/libros",
     status_code=status.HTTP_201_CREATED,
     summary="Registrar un libro",
     description="Crea un libro con disponibilidad inicial en True.",
@@ -163,7 +172,7 @@ def crear_libro(libro: LibroCreate):
 
 
 @app.get(
-    "/libros",
+    "/api/v1/libros",
     summary="Consultar el catálogo",
     description=(
         "Devuelve los libros ordenados por título. "
@@ -181,7 +190,7 @@ def obtener_libros():
 
 
 @app.get(
-    "/libros/{libro_id}",
+    "/api/v1/libros/{libro_id}",
     summary="Consultar un libro",
     description="Devuelve los datos y la disponibilidad de un libro por su ID.",
     tags=["Libros"],
@@ -195,7 +204,7 @@ def obtener_libro(libro_id: int):
 
 
 @app.patch(
-    "/libros/{libro_id}",
+    "/api/v1/libros/{libro_id}",
     summary="Editar un libro",
     description=(
         "Actualiza el título, el autor o ambos. "
@@ -234,7 +243,7 @@ def editar_libro(libro_id: int, payload: LibroUpdate):
 
 
 @app.patch(
-    "/libros/{libro_id}/disponibilidad",
+    "/api/v1/libros/{libro_id}/disponibilidad",
     summary="Actualizar la disponibilidad",
     description=(
         "Establece disponible en False al prestar el libro "
@@ -262,7 +271,7 @@ def actualizar_disponibilidad(
 
 
 @app.delete(
-    "/libros/{libro_id}",
+    "/api/v1/libros/{libro_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Eliminar un libro",
     description=(
