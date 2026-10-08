@@ -2,11 +2,15 @@ import sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field, ConfigDict
 
 
 DB_PATH = Path(__file__).with_name("resenas.db")
+
+LIBROS_URL = "http://localhost:8001/api/v1/libros"
+USUARIOS_URL = "http://localhost:8002/api/v1/usuarios"
 
 
 def get_db():
@@ -88,6 +92,45 @@ class ResenaCreate(BaseModel):
     )
 
 
+async def consultar_recurso(url: str, nombre: str):
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            respuesta = await client.get(url)
+    except httpx.RequestError:
+        raise HTTPException(
+            status_code=503,
+            detail=f"No se pudo conectar con el servicio de {nombre}"
+        )
+
+    if respuesta.status_code == 404:
+        raise HTTPException(
+            status_code=404,
+            detail=f"{nombre.capitalize()} no encontrado"
+        )
+
+    if respuesta.status_code != 200:
+        raise HTTPException(
+            status_code=503,
+            detail=f"El servicio de {nombre} respondió con error"
+        )
+
+    try:
+        datos = respuesta.json()
+    except ValueError:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Respuesta JSON inválida de {nombre}"
+        )
+
+    if not isinstance(datos, dict):
+        raise HTTPException(
+            status_code=503,
+            detail=f"Respuesta inesperada de {nombre}"
+        )
+
+    return datos
+
+
 @app.get(
     "/",
     tags=["General"],
@@ -111,10 +154,19 @@ def root():
         "a un libro y a un usuario."
     )
 )
-def crear_resena(resena: ResenaCreate):
+async def crear_resena(resena: ResenaCreate):
+
+    libro = await consultar_recurso(
+        f"{LIBROS_URL}/{resena.libro_id}",
+        "libro"
+    )
+
+    usuario = await consultar_recurso(
+        f"{USUARIOS_URL}/{resena.usuario_id}",
+        "usuario"
+    )
 
     with get_db() as conn:
-
         cursor = conn.execute(
             """
             INSERT INTO resenas (
@@ -134,13 +186,13 @@ def crear_resena(resena: ResenaCreate):
         )
 
         conn.commit()
-
         resena_id = cursor.lastrowid
 
     return {
         "message": "Reseña registrada correctamente",
         "resena_id": resena_id,
         "libro_id": resena.libro_id,
+        "nombre_libro": libro.get("titulo"),
         "usuario_id": resena.usuario_id,
         "calificacion": resena.calificacion,
         "comentario": resena.comentario
@@ -156,10 +208,14 @@ def crear_resena(resena: ResenaCreate):
         "y calcula el promedio general de calificaciones."
     )
 )
-def obtener_resenas_libro(libro_id: int):
+async def obtener_resenas_libro(libro_id: int):
+
+    libro = await consultar_recurso(
+        f"{LIBROS_URL}/{libro_id}",
+        "libro"
+    )
 
     with get_db() as conn:
-
         filas = conn.execute(
             """
             SELECT
@@ -189,6 +245,7 @@ def obtener_resenas_libro(libro_id: int):
 
     return {
         "libro_id": libro_id,
+        "nombre_libro": libro.get("titulo"),
         "promedio": round(promedio, 2),
         "total_resenas": len(resenas),
         "resenas": resenas

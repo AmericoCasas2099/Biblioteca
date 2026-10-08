@@ -73,7 +73,7 @@
                 "Multas",
                 "Resenas"
             ],
-            "stopAll": false
+            "stopAll": true
         }
     ]
 }

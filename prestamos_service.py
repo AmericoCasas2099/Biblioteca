@@ -409,7 +409,10 @@ async def crear_prestamo(
     return {
         "prestamo_id": prestamo_id,
         "usuario_id": datos.usuario_id,
+        "usuario_nombre": usuario.get("nombre"),
         "libro_id": datos.libro_id,
+        "libro_titulo": libro.get("titulo"),
+        "libro_autor": libro.get("autor"),
         "activo": True
     }
 
